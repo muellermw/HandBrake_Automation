@@ -1,0 +1,17 @@
+HandBrakeCLI -i SOURCE -o DESTINATION --preset="HQ 1080p30 Surround" --audio-lang-list "eng" -E copy,ac3 --audio-copy-mask aac,ac3,eac3,truehd,dts,dtshd,mp3 -B 448 --audio-fallback mp3 --mixdown stereo -A "Surround\ 7.1/5.1","Stereo"
+
+HandBrakeCLI -i SOURCE -o DESTINATION --preset="HQ 1080p30 Surround" -a 2,2 -E copy,ac3 --audio-copy-mask aac,ac3,eac3,truehd,dts,dtshd,mp3 -B 448 --audio-fallback mp3 --mixdown stereo -A "Surround\ 7.1/5.1","Stereo"
+
+.mp4 files don't support soft subtitles. If encoding with .mkv files, add this on:
+--subtitle-lang-list "eng" --first-subtitle
+
+In the script:
+# run handbrake: video - HQ 1080p, audio - surround passthrough: AAC/AC-3/EAC-3/TrueHD/DTS/DTS-HD MA/MP3, AC-3 secondary stereo, backup codec: MP3, bitrate: audioBitrate KB/s
+HandBrakeCLI -i "$compressDirectory/$uncompressedVideoFile" -o "$compressDirectory/$compressedVideoFile" --preset="HQ 1080p30 Surround" --audio-lang-list "eng" -E copy,"$AC3Codec" --audio-copy-mask "$AACCodec","$AC3Codec","$EAC3Codec","$DolbyHDCodec","$DTSCodec","$DTSHDCodec","$MP3Codec" -B $audioBitrate --audio-fallback "$MP3Codec" --mixdown stereo -A "Surround\ 7.1/5.1","Stereo"
+
+# run handbrake: same settings but use second audio stream
+HandBrakeCLI -i "$compressDirectory/$uncompressedVideoFile" -o "$compressDirectory/$compressedVideoFile" --preset="HQ 1080p30 Surround" -a 2,2 -E copy,"$AC3Codec" --audio-copy-mask "$AACCodec","$AC3Codec","$EAC3Codec","$DolbyHDCodec","$DTSCodec","$DTSHDCodec","$MP3Codec" -B $audioBitrate --audio-fallback "$MP3Codec" --mixdown stereo -A "Surround\ 7.1/5.1","Stereo"
+
+To list media file information:
+ffprobe -show_streams -select_streams a SOURCE
+mediainfo SOURCE
