@@ -12,7 +12,6 @@
 #                  - lsof                                                                                                                  #
 #                  - mediainfo                                                                                                             #
 # AUTHOR:          Marcus Mueller                                                                                                          #
-# LICENSE:         Put a cork in it! I don't need a license for personal use. HandBrakeCLI is open source asshole...                       #
 ############################################################################################################################################
 
 HELP="Usage:\n \
