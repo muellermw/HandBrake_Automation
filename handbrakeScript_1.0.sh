@@ -8,7 +8,6 @@
 #                  - lsof                                                                                                                  #
 #                  - mediainfo                                                                                                             #
 # AUTHOR:          Marcus Mueller                                                                                                          #
-# LICENSE:         Put a cork in it! I don't need a license for personal use. HandBrakeCLI is open source asshole...                       #
 ############################################################################################################################################
 
 compressDirectory=/home/max/Max-Server-Files/odin\ server/Compress_Movies_Here
