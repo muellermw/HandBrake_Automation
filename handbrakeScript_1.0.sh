@@ -98,7 +98,7 @@ fi
 
 mv "$uncompressedVideoFileFullPath" "$backupDirectory/"
 if [ $? -ne 0 ]; then
-    echo "Could not move $uncompressedVideoFile to $backupDirectory. If this happens, that means there is a bad bug that needs attention!" >> "$errorFile"
+    echo "Could not move $uncompressedVideoFile to $backupDirectory. If this happens, the program may be in an infinite loop!" >> "$errorFile"
     exit 1
 else
     echo "$uncompressedVideoFile is now located in $backupDirectory"
