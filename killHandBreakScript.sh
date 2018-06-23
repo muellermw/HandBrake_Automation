@@ -1,8 +1,8 @@
 #!/bin/sh
-# This script checks if any handbrakeScript is running. If so:
+# This script checks if any HandBrake_Automation script is running. If so:
 # kills both the script and the HandBrakeCLI process running along with it
 
-compressionScript="handbrakeScript"
+compressionScript="HandBrake_Automation"
 compressionProcess="HandBrakeCLI"
 
 pkill $compressionScript
