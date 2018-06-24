@@ -92,17 +92,17 @@ compressFile()
       # run HandBrake: video - HQ 1080p, audio - surround passthrough: AAC/AC-3/EAC-3/TrueHD/DTS/DTS-HD MA/MP3,
       # AC-3 secondary stereo, backup codec: MP3, bitrate: audioBitrate KB/s
       
-      # the line: '-E copy, "$AC3Codec"' allows 2 audio tracks - one copied and one compressed - to coexist
+      # the line: '-E copy,"$AC3Codec"' allows 2 audio tracks - one copied and one compressed - to coexist
       
       HandBrakeCLI -i "$CompressDir$uncompressedVideoFileBase" -o "$CompressDir$compressedVideoFileBase" \
       --preset="HQ 1080p30 Surround" \
       --audio-lang-list "eng" \     
-      -E copy, "$AC3Codec" \
+      -E copy,"$AC3Codec" \
       --audio-copy-mask "$AACCodec","$AC3Codec","$EAC3Codec","$DolbyHDCodec","$DTSCodec","$DTSHDCodec","$MP3Codec" \
       -B $AudioBitrate \
       --audio-fallback "$MP3Codec" \
       --mixdown stereo \
-      -A "Surround\ 7.1/5.1", "Stereo"
+      -A "Surround\ 7.1/5.1","Stereo"
   else
       echo "USING SECOND AUDIO STREAM!"
       echo "The second audio stream was chosen for $uncompressedVideoFile" >> "$LogFile"
@@ -116,7 +116,7 @@ compressFile()
       -B $AudioBitrate \
       --audio-fallback "$MP3Codec" \
       --mixdown stereo \
-      -A "Surround\ 7.1/5.1", "Stereo"
+      -A "Surround\ 7.1/5.1","Stereo"
   fi
 
   if [ $? -eq 0 ]; then
