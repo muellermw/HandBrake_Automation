@@ -2,7 +2,7 @@
 # This script checks if any HandBrake_Automation script is running. If so:
 # kills both the script and the HandBrakeCLI process running along with it
 
-compressionScript="HandBrake_Automation"
+compressionScript="HandBrake_Auto"
 compressionProcess="HandBrakeCLI"
 
 pkill $compressionScript
