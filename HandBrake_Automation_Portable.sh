@@ -68,10 +68,6 @@ echo "Compress directory: $CompressDir"
 echo "Backup directory: $BackupDir"
 echo "Log directory: $LogDir"
 
-# in case we are using relative paths
-CompressDir=$(realpath "$CompressDir")
-  BackupDir=$(realpath "$BackupDir")
-
 # the log files will be stored in the backup directory
   LogFile="$BackupDir/CompressionLoghbs.log"
 ErrorFile="$BackupDir/HandBrakeScriptErrorReporthbs.log"
@@ -208,8 +204,6 @@ fileTreeWalker()
 
     # this file is a directory
     if [ -d "$file" ]; then
-	    # create the new directory in the destination location
-	    mkdir -p "$FinishedDir$destFileBase"
 	    # check if the directory is not empty, if so drill down into it
 	    if ! checkEmptyDir "$file"; then
         fileTreeWalker "$file"
@@ -231,10 +225,6 @@ fileTreeWalker()
             compressFile "$fullMovieFileName" "$destFileBase"
           fi
           ;;
-        # this accounts for any files that do not need to be compressed,
-        # but rather just moved to the destination
-        *)
-          mv "$file" "$FinishedDir$destFileBase"
       esac
     fi
   done
