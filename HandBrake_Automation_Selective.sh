@@ -60,7 +60,7 @@ checkEmptyDir()
 #   outputs: none, but will exit if HandBrake is running
 checkHandBrakeProcess()
 {
-  if (pgrep "HandBrake"); then
+  if (pgrep "HandBrakeCLI"); then
     echo "Existing HandBrake process detected. No need to start another compression."
     echo "Exiting..."
     exit 1
