@@ -55,18 +55,27 @@ checkEmptyDir()
 	fi
 }
 
+# this function checks for an existing HandBrake process that is running
+#   inputs: none
+#   outputs: none, but will exit if HandBrake is running
+checkHandBrakeProcess()
+{
+  if (pgrep "HandBrake"); then
+    echo "Existing HandBrake process detected. No need to start another compression."
+    echo "Exiting..."
+    exit 1
+  fi
+}
+
 # this function will test the given file to see if it can be compressed by HandBrake
 #   inputs:  the file path of the media file
 #   outputs: 0 if file is valid, 1 if not
 checkValidFile()
 {
   # make sure HandBrake is not already running
-  if (pgrep "HandBrakeCLI"); then
-    echo "Existing HandBrakeCLI process detected: no need to start another compression"
-    echo "Exiting..."
-    return 1
+  checkHandBrakeProcess
   # make sure the file is not open before compressing it
-  elif [ "$(lsof 2>/dev/null | grep "$1")" ]; then
+  if [ "$(lsof 2>/dev/null | grep "$1")" ]; then
     # create this variable in hopes that the file is being
     # processed and will be ready to compress at the end
     echo "Movie file $1 was open! Skipping for now..."
@@ -102,7 +111,7 @@ compressFile()
       
       HandBrakeCLI -i "$CompressDir$uncompressedVideoFileBase" -o "$CompressDir$compressedVideoFileBase" \
       --preset="HQ 1080p30 Surround" \
-      --audio-lang-list "eng" \     
+      --audio-lang-list "eng" \
       -E copy,"$AC3Codec" \
       --audio-copy-mask "$AACCodec","$AC3Codec","$EAC3Codec","$DolbyHDCodec","$DTSCodec","$DTSHDCodec","$MP3Codec" \
       -B $AudioBitrate \
@@ -184,6 +193,8 @@ fileTreeWalker()
   done
 }
 
+
+checkHandBrakeProcess
 
 fileTreeWalker "$CompressDir"
 
