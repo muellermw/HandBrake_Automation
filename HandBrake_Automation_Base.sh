@@ -53,15 +53,15 @@ checkEmptyDir()
 	fi
 }
 
-# this function checks for an existing HandBrake process that is running
-#   inputs: none
-#   outputs: none, but will exit if HandBrake is running
-checkHandBrakeProcess()
+# this function checks if a process is running
+#   inputs: the name of the process
+#   outputs: 0 if the process is running, 1 if not
+checkProcess()
 {
-  if (pgrep "HandBrakeCLI"); then
-    echo "Existing HandBrake process detected. No need to start another compression."
-    echo "Exiting..."
-    exit 1
+  if (pgrep "$1"); then
+    return 0
+  else
+    return 1
   fi
 }
 
@@ -70,8 +70,12 @@ checkHandBrakeProcess()
 #   outputs: 0 if file is valid, 1 if not
 checkValidFile()
 {
-  # make sure HandBrake is not already running
-  checkHandBrakeProcess
+  # make sure another HandBrakeCLI is not already running
+  if checkProcess "HandBrakeCLI"; then
+    echo "There is another HandBrakeCLI process running. We are exiting so we don't bog down the CPU."
+    echo "Exiting..."
+    exit 1
+  fi
   # make sure the file is not open before compressing it
   if [ "$(lsof 2>/dev/null | grep "$1")" ]; then
     # create this variable in hopes that the file is being
@@ -120,7 +124,7 @@ compressFile()
       HandBrakeCLI -i "$CompressDir$uncompressedVideoFileBase" -o "$CompressDir$compressedVideoFileBase" \
       --preset="HQ 1080p30 Surround" \
       -a 2,2 \
-      -E copy, "$AC3Codec" \
+      -E copy,"$AC3Codec" \
       --audio-copy-mask "$AACCodec","$AC3Codec","$EAC3Codec","$DolbyHDCodec","$DTSCodec","$DTSHDCodec","$MP3Codec" \
       -B $AudioBitrate \
       --audio-fallback "$MP3Codec" \
@@ -201,7 +205,12 @@ fileTreeWalker()
 }
 
 
-checkHandBrakeProcess
+# make sure HandBrakeCLI is not already running
+if checkProcess "HandBrakeCLI"; then
+  echo "Existing HandBrakeCLI process detected. No need to start another compression."
+  echo "Exiting..."
+  exit 1
+fi
 
 fileTreeWalker "$CompressDir"
 
@@ -216,3 +225,5 @@ if [ ! -z $RecallFile ]; then
 fi
 
 find "$CompressDir" -type d -empty -delete
+
+exit 0
