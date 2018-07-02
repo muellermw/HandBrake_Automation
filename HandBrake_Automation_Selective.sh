@@ -217,6 +217,4 @@ if [ ! -z $RecallFile ]; then
   fi
 fi
 
-find "$CompressDir" -type d -empty -delete
-
 exit 0
