@@ -115,7 +115,7 @@ compressFile()
       -B $AudioBitrate \
       --audio-fallback "$MP3Codec" \
       --mixdown stereo \
-      -A "Surround\ 7.1/5.1","Stereo"
+      -A "Surround","Stereo"
   else
       echo "USING SECOND AUDIO STREAM!"
       echo "The second audio stream was chosen for $uncompressedVideoFile" >> "$LogFile"
@@ -129,7 +129,7 @@ compressFile()
       -B $AudioBitrate \
       --audio-fallback "$MP3Codec" \
       --mixdown stereo \
-      -A "Surround\ 7.1/5.1","Stereo"
+      -A "Surround","Stereo"
   fi
 
   if [ $? -eq 0 ]; then
