@@ -155,7 +155,7 @@ compressFile()
   # Handbrake cannot encode Atmos/TrueHD 7.1 yet. If first stream is Atmos, grab the next available stream in hopes that it is AC3
   if [ ! "$(mediainfo "$uncompressedVideoFileFullPath" | grep -i A_TRUEHD)" ]; then
       # run HandBrake: video - HQ 1080p, audio - surround passthrough: AAC/AC-3/EAC-3/TrueHD/DTS/DTS-HD MA/MP3,
-      # AC-3 secondary stereo, backup codec: MP3, bitrate: audioBitrate KB/s
+      # AC-3 secondary stereo, backup codec: MP3, bitrate: AudioBitrate KB/s
       
       # the line: '-E copy,"$AC3Codec"' allows 2 audio tracks - one copied and one compressed - to coexist
       
