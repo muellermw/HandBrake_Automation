@@ -77,7 +77,7 @@ checkValidFile()
     exit 1
   fi
   # make sure the file is not open before compressing it
-  if [ "$(lsof 2>/dev/null | grep "$1")" ]; then
+  if [ "$(lsof "$1")" ]; then
     # create this variable in hopes that the file is being
     # processed and will be ready to compress at the end
     echo "Movie file $1 was open! Skipping for now..."
