@@ -58,7 +58,7 @@ checkEmptyDir()
 #   outputs: 0 if the process is running, 1 if not
 checkProcess()
 {
-  if (pgrep "$1"); then
+  if [ "$(pgrep "$1")" ]; then
     return 0
   else
     return 1
