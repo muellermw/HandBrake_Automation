@@ -49,10 +49,10 @@ FileSizeLimit=+14G
 checkEmptyDir()
 {
   if [ -z "$(ls -A "$1")" ]; then
-	  return 0
-	else
-	  return 1
-	fi
+    return 0
+  else
+    return 1
+  fi
 }
 
 # this function checks if a process is running
@@ -171,8 +171,8 @@ fileTreeWalker()
 
     # this file is a directory
     if [ -d "$file" ]; then
-	    # check if the directory is not empty, if so drill down into it
-	    if ! checkEmptyDir "$file"; then
+      # check if the directory is not empty, if so drill down into it
+      if ! checkEmptyDir "$file"; then
         fileTreeWalker "$file"
       fi
     # this is a regular file
