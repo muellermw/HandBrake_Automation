@@ -1,29 +1,47 @@
 #!/bin/sh
 
-########################################################################################################################
-# DESCRIPTION:     Video compression script that uses HandBrakeCLI for encoding: this version takes every .mkv file    #
-#                  in the "CompressDir" and compresses it. When completed, the script moves the compressed file        #
-#                  and uncompressed file into finished and backup directories.                                         #
-#                                                                                                                      #
-# ADDITIONAL INFO: Dependancies:                                                                                       #
-#                  - HandBrakeCLI (use latest build found at                                                           #
-#                    https://launchpad.net/~stebbins/+archive/ubuntu/handbrake-releases/+packages)                     #
-#                  - mediainfo                                                                                         #
-#                                                                                                                      #
-# AUTHOR:          Marcus Mueller                                                                                      #
-########################################################################################################################
+######################################################################################################################
+# DESCRIPTION:     Video compression script that uses HandBrakeCLI for encoding: this version takes every            #
+#                  .mkv (or .mp4) file in the compress directory and compresses it. When completed, the              #
+#                  script moves the compressed file and uncompressed file into finished and backup directories.      #
+#                                                                                                                    #
+# ADDITIONAL INFO: Dependencies:                                                                                     #
+#                  - HandBrakeCLI (use latest build found at                                                         #
+#                    https://launchpad.net/~stebbins/+archive/ubuntu/handbrake-releases)                             #
+#                                                                                                                    #
+# AUTHOR:          Marcus Mueller                                                                                    #
+######################################################################################################################
 
 # TODO:
 # Fill this information in for where the compression should take place,
-# along with where the finished and backup files should be placed.
-CompressDir=
-FinishedDir=
-  BackupDir=
+# along with where the finished, backup and preset files should be placed.
+CompressDir=/mnt/c/Users/Marcus/Desktop/compress
+FinishedDir=/mnt/c/Users/Marcus/Desktop/finished
+  BackupDir=/mnt/c/Users/Marcus/Desktop/backup
+ PresetsDir="$CompressDir"/HandBrakePresets
 
 # in case we are using relative paths
 CompressDir=$(realpath "$CompressDir")
 FinishedDir=$(realpath "$FinishedDir")
   BackupDir=$(realpath "$BackupDir")
+ PresetsDir=$(realpath "$PresetsDir")
+
+if [ ! -d "$CompressDir" ] || [ ! -d "$PresetsDir" ] || [ -z "$FinishedDir" ] || [ -z "$BackupDir" ]; then
+  echo "Some parameters are missing or invalid:"
+  echo "\tCompression Directory: $CompressDir"
+  echo "\tFinished Directory: $FinishedDir"
+  echo "\tBackup Directory: $BackupDir"
+  echo "\tPresets Directory: $PresetsDir"
+  exit 0
+fi
+
+MkvPresetFile="MKV HQ.json"
+Mp4PresetFile="MP4 HQ.json"
+MkvHqPreset="HQ MKV"
+Mp4HqPreset="HQ MP4"
+
+# resolve any symlinks of there are any
+ThisScript="$(basename "$(test -L "$0" && readlink "$0" || echo "$0")")"
 
   LogFile="$CompressDir/CompressionLoghbs.log"
 ErrorFile="$CompressDir/HandBrakeScriptErrorReporthbs.log"
@@ -31,15 +49,11 @@ ErrorFile="$CompressDir/HandBrakeScriptErrorReporthbs.log"
 mkvFileExt=.mkv
 mp4FileExt=.mp4
 
-    AACCodec=aac
-    AC3Codec=ac3
-   EAC3Codec=eac3
-DolbyHDCodec=truehd
-    DTSCodec=dts
-  DTSHDCodec=dtshd
-    MP3Codec=mp3
+# change this is you'd like to compress to mp4 instead
+compressFileExt=$mkvFileExt
 
-AudioBitrate=448
+destinationTmpFormat=.hbtmp
+
 
 # this function checks for an empty directory
 #   inputs:  the file path to check
@@ -97,52 +111,39 @@ compressFile()
   uncompressedVideoFileFullPath="$1"
   uncompressedVideoFile=$(basename "$1")
   uncompressedVideoFileBase="$2"
-  compressedVideoFileBase="${2%.*}$mp4FileExt"
-  compressedVideoFile=$(basename "$compressedVideoFileBase")
+  compressedVideoFileTitle="${2%.*}"
+  compressedVideoFileBase=$(basename "$compressedVideoFileTitle")
 
-  # Handbrake cannot encode Atmos/TrueHD 7.1 yet. If first stream is Atmos, grab the next available stream in hopes that it is AC3
-  if [ ! "$(mediainfo "$uncompressedVideoFileFullPath" | grep -i A_TRUEHD)" ]; then
-      # run HandBrake: video - HQ 1080p, audio - surround passthrough: AAC/AC-3/EAC-3/TrueHD/DTS/DTS-HD MA/MP3,
-      # AC-3 secondary stereo, backup codec: MP3, bitrate: AudioBitrate KB/s
-      
-      # the line: '-E copy,"$AC3Codec"' allows 2 audio tracks - one copied and one compressed - to coexist
-      
-      HandBrakeCLI -i "$CompressDir$uncompressedVideoFileBase" -o "$CompressDir$compressedVideoFileBase" \
-      --preset="HQ 1080p30 Surround" \
-      --audio-lang-list "eng" \
-      -E copy,"$AC3Codec" \
-      --audio-copy-mask "$AACCodec","$AC3Codec","$EAC3Codec","$DolbyHDCodec","$DTSCodec","$DTSHDCodec","$MP3Codec" \
-      -B $AudioBitrate \
-      --audio-fallback "$MP3Codec" \
-      --mixdown stereo \
-      -A "Surround","Stereo"
+  # the MP4 container does not support Dolby Atmos or subtitle streams. Use a different preset if we are compressing to MP4
+  if [ "$compressFileExt" = "$mkvFileExt" ]; then
+    # run HandBrake: video - HQ 1080p, audio - surround passthrough,
+    # AC-3 secondary stereo, backup codec: AC3, bitrate: AudioBitrate kb/s
+    HandBrakeCLI --input "$CompressDir$uncompressedVideoFileBase" \
+                 --output "$CompressDir$compressedVideoFileTitle$destinationTmpFormat" \
+                 --preset-import-file "$PresetsDir/$MkvPresetFile" \
+                 --preset "$MkvHqPreset" \;
   else
-      echo "USING SECOND AUDIO STREAM!"
-      echo "The second audio stream was chosen for $uncompressedVideoFile" >> "$LogFile"
-      # run HandBrake: same settings but use second audio stream
-      
-      HandBrakeCLI -i "$CompressDir$uncompressedVideoFileBase" -o "$CompressDir$compressedVideoFileBase" \
-      --preset="HQ 1080p30 Surround" \
-      -a 2,2 \
-      -E copy,"$AC3Codec" \
-      --audio-copy-mask "$AACCodec","$AC3Codec","$EAC3Codec","$DolbyHDCodec","$DTSCodec","$DTSHDCodec","$MP3Codec" \
-      -B $AudioBitrate \
-      --audio-fallback "$MP3Codec" \
-      --mixdown stereo \
-      -A "Surround","Stereo"
+    HandBrakeCLI --input "$CompressDir$uncompressedVideoFileBase" \
+                 --output "$CompressDir$compressedVideoFileTitle$destinationTmpFormat" \
+                 --preset-import-file "$PresetsDir$Mp4PresetFile" \
+                 --preset "$Mp4HqPreset" \;
   fi
 
   if [ $? -eq 0 ]; then
-      echo "$uncompressedVideoFile was compressed to $compressedVideoFile" >> "$LogFile"
+      echo "$uncompressedVideoFile was compressed (to ${compressedVideoFileBase}${compressFileExt})" >> "$LogFile"
   else
       echo "HandBrakeCLI did not exit with a return value of 0 while compressing $uncompressedVideoFile. Consider investigating?" >> "$ErrorFile"
   fi
 
-  mv "$CompressDir$compressedVideoFileBase" "$FinishedDir$compressedVideoFileBase"
+  if [ ! -d "$FinishedDir" ]; then
+      mkdir -p "$FinishedDir"
+  fi
+
+  mv "$CompressDir$compressedVideoFileTitle$destinationTmpFormat" "$FinishedDir$compressedVideoFileTitle$compressFileExt"
   if [ $? -eq 0 ]; then
-      echo "$compressedVideoFile is now located at $FinishedDir$compressedVideoFileBase"
+      echo "$compressedVideoFileBase$destinationTmpFormat is now located at $FinishedDir$compressedVideoFileTitle$compressFileExt"
   else
-      echo "Could not move $compressedVideoFile to $FinishedDir$compressedVideoFileBase. Did HandBrakeCLI error out as well?" >> "$ErrorFile"
+      echo "Could not move $compressedVideoFileBase$destinationTmpFormat to $FinishedDir$compressedVideoFileTitle$compressFileExt. Did HandBrakeCLI error out as well?" >> "$ErrorFile"
   fi
 
   if [ ! -d "$BackupDir" ]; then
@@ -160,7 +161,7 @@ compressFile()
   sleep 3
 }
 
-# this function walks through a directory tree and attempts to compress any valid files within it
+# this function walks through a directory tree and attempts to compress any valid files within it.
 # all files within the directory tree that are not valid are restored at the destination directory
 #   inputs:  the file path of the directory to seach for compressable files
 #   outputs: none
@@ -170,25 +171,26 @@ fileTreeWalker()
     # create the new destination file base
     destFileBase=$(echo "$file" | sed "s|$CompressDir||")
 
-    # this file is a directory
-    if [ -d "$file" ]; then
+    # this file is a directory and is not the preset directory
+    if [ -d "$file" ] && [ ! "$file" = "$PresetsDir" ]; then
       # create the new directory in the destination location
       mkdir -p "$FinishedDir$destFileBase"
+
       # check if the directory is not empty, if so drill down into it
       if ! checkEmptyDir "$file"; then
         fileTreeWalker "$file"
       fi
     # this is a regular file
-    else
+    elif [ -f "$file" ]; then
       # compare filename patterns with its basename
       case $(basename "$file") in
-        $(basename "$0"))
+        $ThisScript)
           echo "$file is my own file, do not move or copy"
           ;;
         $(basename "$LogFile")|$(basename "$ErrorFile"))
           echo "$file is a program log file, do not move or copy"
           ;;
-        *$mkvFileExt)
+        *$compressFileExt)
           echo "Found a movie file: " $(basename "$file")
           fullMovieFileName=$(realpath "$file")
           if checkValidFile "$fullMovieFileName"; then
@@ -224,6 +226,6 @@ if [ ! -z $RecallFile ]; then
   fi
 fi
 
-find "$CompressDir" -type d -empty -delete
+find "$CompressDir" -mindepth 1 -type d -empty -delete
 
 exit 0
