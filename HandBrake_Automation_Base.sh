@@ -15,9 +15,9 @@
 # TODO:
 # Fill this information in for where the compression should take place,
 # along with where the finished, backup and preset files should be placed.
-CompressDir=/mnt/c/Users/Marcus/Desktop/compress
-FinishedDir=/mnt/c/Users/Marcus/Desktop/finished
-  BackupDir=/mnt/c/Users/Marcus/Desktop/backup
+CompressDir=""
+FinishedDir=""
+  BackupDir=""
  PresetsDir="$CompressDir"/HandBrakePresets
 
 # in case we are using relative paths
