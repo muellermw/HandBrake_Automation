@@ -103,7 +103,7 @@ checkValidFile()
   if [ "$(lsof "$1")" ]; then
     # create this variable in hopes that the file is being
     # processed and will be ready to compress at the end
-    echo "Movie file $1 was open! Skipping for now..."
+    echo "Movie file $1 is currently opened by another process! Skipping for now..."
     RecallFile="$1"
     RecallFileBase="$destFileBase"
     return 1

@@ -83,7 +83,7 @@ fi
 
 # TODO:
 # this script will only compress a movie file if it is larger than this size
-FileSizeLimit=+14G
+FileSizeLimit=+5G
 
 # TODO:
 # modify this list of file types to choose what kind of video files we should look for
@@ -165,7 +165,7 @@ checkValidFile()
   if [ "$(lsof "$1")" ]; then
     # create this variable in hopes that the file is being
     # processed and will be ready to compress at the end
-    echo "Movie file $1 was open! Skipping for now..."
+    echo "Movie file $1 is currently opened by another process! Skipping for now..."
     RecallFile="$1"
     RecallFileBase="$destFileBase"
     return 1
@@ -255,7 +255,9 @@ fileTreeWalker()
           fi
           
           echo "Found a movie file: $(basename "$file")"
-          compressFile "$file"
+          if checkValidFile "$file"; then
+            compressFile "$file"
+          fi
         fi
       done
     fi
