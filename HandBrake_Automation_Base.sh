@@ -36,6 +36,16 @@ if [ ! -d "$CompressDir" ] || [ ! -d "$PresetsDir" ] || [ -z "$FinishedDir" ] ||
   exit 0
 fi
 
+if [ "$CompressDir" == "$FinishedDir" ]; then
+  echo "The compression path cannot be the same as the finished path!"
+  exit 1
+fi
+
+if [ "$CompressDir" == "$BackupDir" ]; then
+  echo "The compression path cannot be the same as the backup path!"
+  exit 1
+fi
+
 MkvPresetFile="MKV HQ.json"
 Mp4PresetFile="MP4 HQ.json"
 MkvHqPreset="HQ MKV"
