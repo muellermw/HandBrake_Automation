@@ -1,20 +1,21 @@
-#!/bin/sh
+#!/bin/bash
 
-######################################################################################################################
-# DESCRIPTION:     Video compression script that uses HandBrakeCLI for encoding: this version takes every            #
-#                  .mkv (or .mp4) file in the compress directory and compresses it. When completed, the              #
-#                  script moves the compressed file and uncompressed file into finished and backup directories.      #
-#                                                                                                                    #
-# ADDITIONAL INFO: Dependencies:                                                                                     #
-#                  - HandBrakeCLI (use latest build found at                                                         #
-#                    https://launchpad.net/~stebbins/+archive/ubuntu/handbrake-releases)                             #
-#                                                                                                                    #
-# AUTHOR:          Marcus Mueller                                                                                    #
-######################################################################################################################
+####################################################################################################################
+# DESCRIPTION:     Video compression script that uses HandBrakeCLI for encoding: this version takes every          #
+#                  .mkv (or .mp4) file in the compress directory and compresses it. When completed, the            #
+#                  script moves the compressed file and uncompressed file into finished and backup directories.    #
+#                                                                                                                  #
+# ADDITIONAL INFO: Dependencies:                                                                                   #
+#                  - HandBrakeCLI version 1.2.1 or later (use latest build found at                                #
+#                    https://launchpad.net/~stebbins/+archive/ubuntu/handbrake-releases)                           #
+#                                                                                                                  #
+# AUTHOR:          Marcus Mueller                                                                                  #
+####################################################################################################################
 
 # TODO:
 # Fill this information in for where the compression should take place,
-# along with where the finished, backup and preset files should be placed.
+# where the finished and backup files are placed,
+# and where preset files are stored.
 CompressDir=""
 FinishedDir=""
   BackupDir=""
@@ -27,11 +28,11 @@ FinishedDir=$(realpath "$FinishedDir")
  PresetsDir=$(realpath "$PresetsDir")
 
 if [ ! -d "$CompressDir" ] || [ ! -d "$PresetsDir" ] || [ -z "$FinishedDir" ] || [ -z "$BackupDir" ]; then
-  echo "Some parameters are missing or invalid:"
-  echo "\tCompression Directory: $CompressDir"
-  echo "\tFinished Directory: $FinishedDir"
-  echo "\tBackup Directory: $BackupDir"
-  echo "\tPresets Directory: $PresetsDir"
+  echo -e "Some parameters are missing or invalid:"
+  echo -e "\tCompression Directory: $CompressDir"
+  echo -e "\tFinished Directory: $FinishedDir"
+  echo -e "\tBackup Directory: $BackupDir"
+  echo -e "\tPresets Directory: $PresetsDir"
   exit 0
 fi
 
@@ -49,11 +50,19 @@ ErrorFile="$CompressDir/HandBrakeScriptErrorReporthbs.log"
 mkvFileExt=.mkv
 mp4FileExt=.mp4
 
-# change this is you'd like to compress to mp4 instead
+# TODO: change this is you'd like to compress to mp4 instead
 compressFileExt=$mkvFileExt
 
 destinationTmpFormat=.hbtmp
 
+# make sure the preset files exist
+if [ "$compressFileExt" == "$mkvFileExt" ] && [ ! -f "$PresetsDir/$MkvPresetFile" ]; then
+  echo "Could not find preset file: $PresetsDir/$MkvPresetFile"
+  exit 1
+elif [ "$compressFileExt" == "$mp4FileExt" ] && [ ! -f "$PresetsDir/$Mp4PresetFile" ]; then
+  echo "Could not find preset file: $PresetsDir/$Mp4PresetFile"
+  exit 1
+fi
 
 # this function checks for an empty directory
 #   inputs:  the file path to check
@@ -104,7 +113,8 @@ checkValidFile()
 }
 
 # this function uses HandBrakeCLI to compress the given movie file
-#   inputs:  the file path of the media file, file base of the file
+#   inputs:  the file path of the media file,
+#            file base of the media file (relative to the "compress" directory)
 #   outputs: none
 compressFile()
 {
@@ -117,7 +127,7 @@ compressFile()
   # the MP4 container does not support Dolby Atmos or subtitle streams. Use a different preset if we are compressing to MP4
   if [ "$compressFileExt" = "$mkvFileExt" ]; then
     # run HandBrake: video - HQ 1080p, audio - surround passthrough,
-    # AC-3 secondary stereo, backup codec: AC3, bitrate: AudioBitrate kb/s
+    # AC-3 secondary stereo, backup codec: AC3
     HandBrakeCLI --input "$CompressDir$uncompressedVideoFileBase" \
                  --output "$CompressDir$compressedVideoFileTitle$destinationTmpFormat" \
                  --preset-import-file "$PresetsDir/$MkvPresetFile" \
@@ -125,12 +135,12 @@ compressFile()
   else
     HandBrakeCLI --input "$CompressDir$uncompressedVideoFileBase" \
                  --output "$CompressDir$compressedVideoFileTitle$destinationTmpFormat" \
-                 --preset-import-file "$PresetsDir$Mp4PresetFile" \
+                 --preset-import-file "$PresetsDir/$Mp4PresetFile" \
                  --preset "$Mp4HqPreset" \;
   fi
 
   if [ $? -eq 0 ]; then
-      echo "$uncompressedVideoFile was compressed (to ${compressedVideoFileBase}${compressFileExt})" >> "$LogFile"
+      echo "$uncompressedVideoFile successfully finished compressing" >> "$LogFile"
   else
       echo "HandBrakeCLI did not exit with a return value of 0 while compressing $uncompressedVideoFile. Consider investigating?" >> "$ErrorFile"
   fi
@@ -162,7 +172,7 @@ compressFile()
 }
 
 # this function walks through a directory tree and attempts to compress any valid files within it.
-# all files within the directory tree that are not valid are restored at the destination directory
+# all files within the directory tree that are not valid are restored in the destination directory
 #   inputs:  the file path of the directory to seach for compressable files
 #   outputs: none
 fileTreeWalker()
@@ -187,11 +197,11 @@ fileTreeWalker()
         $ThisScript)
           echo "$file is my own file, do not move or copy"
           ;;
-        $(basename "$LogFile")|$(basename "$ErrorFile"))
+        $(basename "$LogFile") | $(basename "$ErrorFile"))
           echo "$file is a program log file, do not move or copy"
           ;;
         *$compressFileExt)
-          echo "Found a movie file: " $(basename "$file")
+          echo "Found a movie file: $(basename "$file")"
           fullMovieFileName=$(realpath "$file")
           if checkValidFile "$fullMovieFileName"; then
             compressFile "$fullMovieFileName" "$destFileBase"

@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # This script checks if any HandBrake_Automation script is running. If so:
 # kills both the script and the HandBrakeCLI process running along with it.
 
