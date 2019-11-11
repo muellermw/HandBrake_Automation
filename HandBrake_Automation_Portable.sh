@@ -186,7 +186,6 @@ compressFile()
   uncompressedVideoFileFullPath="$1"
   uncompressedVideoFile=$(basename "$1")
   compressedVideoFileTitle="${1%.*}"
-  compressedVideoFileBase=$(basename "$compressedVideoFileTitle")
 
   # the MP4 container does not support Dolby Atmos or subtitle streams. Use a different preset if we are compressing to MP4
   if [ "$compressFileExt" = "$mkvFileExt" ]; then
@@ -199,7 +198,7 @@ compressFile()
   else
     HandBrakeCLI --input "$uncompressedVideoFileFullPath" \
                  --output "$compressedVideoFileTitle$destinationTmpFormat" \
-                 --preset-import-file "$PresetsDir$Mp4PresetFile" \
+                 --preset-import-file "$PresetsDir/$Mp4PresetFile" \
                  --preset "$Mp4HqPreset" \;
   fi
 
