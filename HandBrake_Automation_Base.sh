@@ -33,7 +33,7 @@ if [ ! -d "$CompressDir" ] || [ ! -d "$PresetsDir" ] || [ -z "$FinishedDir" ] ||
   echo -e "\tFinished Directory: $FinishedDir"
   echo -e "\tBackup Directory: $BackupDir"
   echo -e "\tPresets Directory: $PresetsDir"
-  exit 0
+  exit 1
 fi
 
 if [ "$CompressDir" == "$FinishedDir" ]; then
