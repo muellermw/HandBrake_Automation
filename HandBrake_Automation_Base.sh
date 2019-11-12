@@ -159,9 +159,9 @@ compressFile()
     # run HandBrake: video - HQ 1080p, audio - surround passthrough,
     # AC-3 secondary stereo, backup codec: AC3
 
-    # here's where it starts to suck! You know how we are compressing the file, but want to keep the same file name?
-    # yeah, we can't do that yet (it would overwrite the uncompressed file. So the output file is set to the file
-    # extension $destinationTmpFormat (or .hbtmp). Let's keep this example going with the first HandBrakeCLI command:
+    # here's where it starts to suck! You know how we are compressing the file, but want to keep the same file name? Yeah,
+    # we can't do that yet, because it would overwrite the uncompressed file. Instead, the output file is set to the file
+    # extension $destinationTmpFormat (.hbtmp). Let's keep this example going with the first HandBrakeCLI command:
 
     # HandBrakeCLI --input '/home/compress/folder1/movieFile.mkv'
     #              --output '/home/compress' + '/folder1/movieFile' + '.hbtmp'
@@ -180,6 +180,7 @@ compressFile()
                  --preset "$Mp4HqPreset" \;
   fi
 
+  # make sure the HandBrake process finished successfully. Log the error if it didn't
   if [ $? -eq 0 ]; then
       echo "$uncompressedVideoFile successfully finished compressing" >> "$LogFile"
   else
