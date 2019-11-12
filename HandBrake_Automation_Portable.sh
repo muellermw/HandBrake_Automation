@@ -178,13 +178,17 @@ checkValidFile()
   fi
 }
 
-# this function uses HandBrakeCLI to compress the given movie file
-#   inputs:  the file path of the media file
+# this function uses HandBrakeCLI to compress the given media file
+# and then backs up the uncompressed version in case something goes wrong
+#   inputs:  the full file path of the media file
 #   outputs: none
 compressFile()
 {
   uncompressedVideoFileFullPath="$1"
   uncompressedVideoFile=$(basename "$1")
+
+  # this strips off the file extension so that we can put a temporary one on
+  # while compressing to the same file name as the uncompressed media file
   compressedVideoFileTitle="${1%.*}"
 
   # the MP4 container does not support Dolby Atmos or subtitle streams. Use a different preset if we are compressing to MP4
