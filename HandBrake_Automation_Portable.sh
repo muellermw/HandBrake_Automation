@@ -194,7 +194,7 @@ compressFile()
   # the MP4 container does not support Dolby Atmos or subtitle streams. Use a different preset if we are compressing to MP4
   if [ "$compressFileExt" = "$mkvFileExt" ]; then
     # run HandBrake: video - HQ 1080p, audio - surround passthrough,
-    # AC-3 secondary stereo, backup codec: AC3, bitrate: AudioBitrate kb/s
+    # AC-3 secondary stereo, backup codec: AC3
     HandBrakeCLI --input "$uncompressedVideoFileFullPath" \
                  --output "$compressedVideoFileTitle$destinationTmpFormat" \
                  --preset-import-file "$PresetsDir/$MkvPresetFile" \
