@@ -206,6 +206,7 @@ compressFile()
                  --preset "$Mp4HqPreset" \;
   fi
 
+  # make sure the HandBrake process finished successfully. Log the error if it didn't
   if [ $? -eq 0 ]; then
       echo "$uncompressedVideoFile successfully finished compressing" >> "$LogFile"
   else
